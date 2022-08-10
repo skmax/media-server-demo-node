@@ -8,7 +8,7 @@
   },
   "homepage": "https://github.com/murillo128/media-server-demo-node#readme",
   "dependencies": {
-    "medooze-media-server": "npm:skmax-medooze-media-server@^0.119.22-dev-bwe-debug-demo",
+    "medooze-media-server": "npm:skmax-medooze-media-server@^0.113.1-bwe-debug-demo",
     "semantic-sdp": "^3",
     "websocket": "^1.0.26"
   }
