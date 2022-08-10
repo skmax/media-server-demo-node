@@ -92,12 +92,7 @@ const wsServer = new WebSocketServer ({
 
 // Load the demo handlers
 const handlers = {
-	"svc"		: require("./lib/svc.js"),
-	"rec"		: require("./lib/recording.js"),
-	"broadcast"	: require("./lib/broadcast.js"),
-	"simulcast"	: require("./lib/simulcast.js"),
-	"playback"	: require("./lib/playback.js"),
-	"datachannels"	: require("./lib/datachannels.js"),
+	"bwe"		: require("./lib/bwe.js"),
 };
 
 wsServer.on ('request', (request) => {

@@ -6,18 +6,9 @@
   "scripts": {
     "install": "openssl req  -nodes -new -x509  -keyout server.key -out server.cert -subj \"/CN=localhost\""
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/murillo128/media-server-demo-node.git"
-  },
-  "author": "Sergio Garcia Murillo",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/murillo128/media-server-demo-node/issues"
-  },
   "homepage": "https://github.com/murillo128/media-server-demo-node#readme",
   "dependencies": {
-    "medooze-media-server": "^0",
+    "medooze-media-server": "npm:skmax-medooze-media-server@^0.113.1-bwe-debug-demo",
     "semantic-sdp": "^3",
     "websocket": "^1.0.26"
   }

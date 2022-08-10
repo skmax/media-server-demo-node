@@ -34,31 +34,34 @@ if (href.searchParams.has ("video"))
 			videoResolution = false;
 			break;
 	}
-const roomId = (new Date()).getTime() + "-" + Math.random();
 
-var texts =  document.querySelectorAll('.gaugeChartLabel');
 
 function addVideoForStream(stream,muted)
 {
 	//Create new video element
 	const video = document.querySelector (muted ? "#local" : "#remote");
+	//Set same id
+	video.streamid = stream.id;
 	//Set src stream
 	video.srcObject = stream;
 	//Set other properties
 	video.autoplay = true;
 	video.muted = muted;
 }
-function removeVideoForStream(stream)
+
+//Get user media promise based
+function  getUserMedia(constrains)
 {
-	//Get video
-	var video = document.getElementById(stream.id);
-	//Remove it when done
-	video.addEventListener('webkitTransitionEnd',function(){
-            //Delete it
-	    video.parentElement.removeChild(video);
-        });
-	//Disable it first
-	video.className = "disabled";
+	return new Promise(function(resolve,reject) {
+		//Get it
+		navigator.getUserMedia(constrains,
+			function(stream){
+				resolve(stream);
+			},
+			function(error){
+				reject(error);
+			});
+	});
 }
 
 var sdp;
@@ -66,42 +69,39 @@ var pc;
 	
 function connect() 
 {
-	pc = new RTCPeerConnection(null);
+
+	//Create PC
+	pc = new RTCPeerConnection();
 	
-	var ws = new WebSocket(url,"rec");
+	var ws = new WebSocket(url,"bwe");
 	
 	pc.onaddstream = function(event) {
-		var prev = 0;
+		var prev = 0,prevFrames = 0,prevBytes = 0;
 		console.debug("onAddStream",event);
 		//Play it
 		addVideoForStream(event.stream);
-
-			
-	};
-	
-	pc.onremovestream = function(event) {
-		console.debug("onRemoveStream",event);
-		//Play it
-		removeVideoForStream(event.stream);
+		//Get track
+		var track = event.stream.getVideoTracks()[0];
+		//Update stats
 	};
 	
 	ws.onopen = function(){
 		console.log("opened");
+
+
 		
 		navigator.mediaDevices.getUserMedia({
-			audio: true,
-			video:  videoResolution
+			audio: false,
+			video: videoResolution
 		})
-		.then(function(stream){	
-			var prev = 0;
+		.then(function(stream){
 			console.debug("getUserMedia sucess",stream);
 			//Play it
 			addVideoForStream(stream,true);
-			window.s = stream;
 			//Add stream to peer connection
 			pc.addStream(stream);
 			//Create new offer
-			return pc.createOffer(stream);
+			return pc.createOffer();
 		})
 		.then(function(offer){
 			console.debug("createOffer sucess",offer);
@@ -118,7 +118,6 @@ function connect()
 		})
 		.catch(function(error){
 			console.error("Error",error);
-			alert(error);
 		});
 	};
 	
@@ -128,32 +127,25 @@ function connect()
 		//Get protocol message
 		const msg = JSON.parse(event.data);
 		
-		console.log(msg.answer);
-		pc.setRemoteDescription(new RTCSessionDescription({
-				type:'answer',
-				sdp: msg.answer
-			}), function () {
-				console.log("JOINED");
-			}, function (err) {
-				console.error("Error joining",err);
-			}
-		);
+		if (msg.answer)
+		{
+			console.log(msg.answer);
+			pc.setRemoteDescription(new RTCSessionDescription({
+					type:'answer',
+					sdp: msg.answer
+				}), function () {
+					console.log("JOINED");
+				}, function (err) {
+					console.error("Error joining",err);
+				}
+			);
+		} else if (msg.estimatedBitrate){
+			window.estimatedBitrateUpdateCounter++;
+			document.querySelector ('#estimated-bitrate-value').innerHTML = `${msg.estimatedBitrate} bps`;
+		} else if(msg.logs){
+			document.querySelector ('#logs').textContent = msg.logs;
+		}
 	};
 }
 
-var dialog = document.querySelector('dialog');
-if (dialog.showModal)
-{
-	dialog.showModal();
-	dialog.querySelector('.ready').addEventListener('click', function() {
-		dialog.close();
-		connect();
-	});
-} else {
-	connect();
-}
-
-
-
-
-
+connect();
